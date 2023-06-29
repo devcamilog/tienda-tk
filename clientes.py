@@ -269,25 +269,31 @@ class Login:
             nuevo_apellido.grid(row=2, column=1, padx=5, pady=0)
 
             label_correo = Label(self.ventana_editar, text="Correo:", font=("Comic Sans", 10, "bold")).grid(row=0, column=2, sticky='s', padx=5, pady=8)
-            nuevo_combo_correo = ttk.Combobox(self.ventana_editar, values=["Gafas", "Ropa", "Gorra"], width=22, state="readonly")
-            nuevo_combo_correo.set(correo)
+            nuevo_combo_correo = Entry(self.ventana_editar, textvariable=StringVar(self.ventana_editar, value=correo), width=25)
             nuevo_combo_correo.grid(row=0, column=3, padx=5, pady=0)
 
 
             label_telefono = Label(self.ventana_editar, text="Telefono:", font=("Comic Sans", 10, "bold")).grid(row=1, column=2, sticky='s', padx=5, pady=8)
-            nueva_telefono = Entry(self.ventana_editar, textvariable=StringVar(self.ventana_editar, value=telefono), width=25)
-            nueva_telefono.grid(row=2, column=3, padx=5, pady=0)
+            nuevo_telefono = Entry(self.ventana_editar, textvariable=StringVar(self.ventana_editar, value=telefono), width=25)
+            nuevo_telefono.grid(row=2, column=3, padx=5, pady=0)
 
             label_cedula = Label(self.ventana_editar, text="Cedula:", font=("Comic Sans", 10, "bold")).grid(row=2, column=2, sticky='s', padx=5, pady=8)
             nuevo_cedula = Entry(self.ventana_editar, textvariable=StringVar(self.ventana_editar, value=cedula), width=25)
             nuevo_cedula.grid(row=1, column=3, padx=5, pady=0)
 
-            boton_actualizar = Button(self.ventana_editar, text="ACTUALIZAR", command=lambda:self.actualizar(nuevo_codigo_cliente.get(), nuevo_nombre.get(), nuevo_apellido.get(), nuevo_combo_correo.get(), label_telefono.get(), nuevo_cedula.get(), codigo_cliente), height=2, width=20, bg="blue", fg="white", font=("Comic Sans MS", 9, "bold"))
+            boton_actualizar = Button(self.ventana_editar, text="ACTUALIZAR", command=lambda:self.actualizar(nuevo_codigo_cliente.get(), nuevo_nombre.get(), nuevo_apellido.get(), nuevo_combo_correo.get(), nuevo_telefono.get(), nuevo_cedula.get(), codigo_cliente), height=2, width=20, bg="blue", fg="white", font=("Comic Sans MS", 9, "bold"))
             boton_actualizar.grid(row=3, column=1, columnspan=2, padx=10, pady=15)
 
             self.ventana_editar.mainloop()
 
-  
+    def actualizar(self,nuevo_codigo_cliente, nuevo_nombre,nuevo_apellido,nuevo_combo_correo,nuevo_telefono,nuevo_cedula,codigo_cliente):
+        query ='UPDATE Clientes SET codigo= ?, nombre= ?, apellido= ?, correo = ?, telefono= ?, cedula = ? WHERE codigo = ?'
+        parameters = (nuevo_codigo_cliente, nuevo_nombre, nuevo_apellido, nuevo_combo_correo, nuevo_telefono, nuevo_cedula, codigo_cliente)
+        self.ejecutar_consulta(query, parameters)
+        messagebox.showinfo('EXITO', f'Cliente Actualizado:{nuevo_nombre}')
+        self.ventana_editar.destroy()
+        self.listar_clientes()
+
 if __name__ == '__main__':
     ventana_clientes = Tk() 
     application = Login(ventana_clientes)
