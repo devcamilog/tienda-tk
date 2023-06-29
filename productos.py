@@ -441,7 +441,7 @@ class Productos:
         #sentencia SQL LIKE > inicie por
             query=("SELECT * FROM Productos WHERE nombre LIKE ?")
             #% permite realizar la busqueda sin tener completa del nombre a buscar (busqueda parcial de la palabra y luego clic en buscar)
-            parameters = ("%"+self.codigo_nombre.get()+"*")
+            parameters = (self.codigo_nombre.get()+"%")
             #enviamos a ejecutar consulta (conexion a la bd para realizar la query) el query y los parametros
             db_rows = self.ejecutar_consulta(query, (parameters,))
             #db rows es una lista
@@ -453,7 +453,7 @@ class Productos:
 
             if(list(self.tree.get_children())==[]): 
                 #muestra ventana
-                messagebox.showmerror("ERROR","Producto no encontrado")             
+                messagebox.showerror("ERROR","Producto no encontrado")             
                 
     def actualizar(self,nuevo_codigo, nuevo_nombre,nuevo_combo_categoria,nueva_cantidad,nuevo_precio,nueva_descripcion,codigo):
         query ='UPDATE Productos SET codigo= ?, nombre= ?, categoria= ?, cantidad = ?, precio= ?, descripcion = ? WHERE codigo = ?'
