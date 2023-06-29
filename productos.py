@@ -523,7 +523,7 @@ class Productos:
             #busqueda vacia (cuando el producto no esta almacenado en la bd)
             #el get children lo volvemos una lista o varias o completas en la tabla
             if(list(self.tree.get_children())==[]):
-               messagebox.showerror("ERROR", "Producto no encontrado")
+               messagebox.showerror("ERROR", "Cliente no encontrado")
         #muestra ventana
         else:
         #sentencia SQL LIKE > inicie por
@@ -541,7 +541,7 @@ class Productos:
 
             if(list(self.tree.get_children())==[]): 
                 #muestra ventana
-                messagebox.showerror("ERROR","Producto no encontrado")             
+                messagebox.showerror("ERROR","Cliente no encontrado")             
                 
     def actualizar(self,nuevo_codigo, nuevo_nombre,nuevo_combo_categoria,nueva_cantidad,nuevo_precio,nueva_descripcion,codigo):
         query ='UPDATE Productos SET codigo= ?, nombre= ?, categoria= ?, cantidad = ?, precio= ?, descripcion = ? WHERE codigo = ?'
