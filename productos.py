@@ -141,10 +141,10 @@ class Productos:
             messagebox.showerror("ERROR", "Debe seleccionar un producto de la tabla")
         codigo = self.tree.item(self.tree.selection())['text']
         nombre = self.tree.item(self.tree.selection())['values'][0]
-        categoria = self.tree.item(self.tree.selection())['values'][1]
-        cantidad = self.tree.item(self.tree.selection())['values'][2]
-        precio = self.tree.item(self.tree.selection())['values'][3]
-        descripcion = self.tree.item(self.tree.selection())['values'][4]
+        cantidad = self.tree.item(self.tree.selection())['values'][1]
+        categoria = self.tree.item(self.tree.selection())['values'][2]
+        descripcion = self.tree.item(self.tree.selection())['values'][3]
+        precio = self.tree.item(self.tree.selection())['values'][4]
 
         self.ventana_editar = Toplevel()
         self.ventana_editar.title("EDITAR PRODUCTO")
@@ -175,7 +175,7 @@ class Productos:
         nueva_cantidad.grid(row=2, column=1, padx=5, pady=0)
 
         label_precio = Label(self.ventana_editar, text="Precio:", font=("Comic Sans", 10, "bold")).grid(row=2, column=2, sticky='s', padx=5, pady=8)
-        nuevo_precio = Entry(self.ventana_editar, textvariable=StringVar(self.ventana_editar, value=nombre), width=25)
+        nuevo_precio = Entry(self.ventana_editar, textvariable=StringVar(self.ventana_editar, value=precio), width=25)
         nuevo_precio.grid(row=2, column=3, padx=5, pady=0)
 
         boton_actualizar = Button(self.ventana_editar, text="ACTUALIZAR", command=lambda:self.actualizar(nuevo_codigo.get(), nuevo_nombre.get(), nueva_cantidad.get(),nuevo_combo_categoria.get(), nuevo_precio.get(), nueva_descripcion.get(), codigo), height=2, width=20, bg="blue", fg="white", font=("Comic Sans MS", 9, "bold"))
@@ -295,19 +295,22 @@ class Productos:
         self.frame_tabla_crud.config(bd=2)
         self.frame_tabla_crud.grid(row=4, column=0, padx=5, pady=5)
         self.tree = ttk.Treeview(self.frame_tabla_crud, height=13, columns=("columna1", "columna2", "columna3", "columna4", "columna5"))
+        self.tree.heading("#0", text='Codigo Producto', anchor=CENTER)
+        self.tree.column("#0", width=90, minwidth=75, stretch=False)
+
         self.tree.heading("columna1", text='Nombre', anchor=CENTER)
         self.tree.column("columna1", width=150, minwidth=75, stretch=False)
         
-        self.tree.heading("columna2", text='Categoria', anchor=CENTER)
+        self.tree.heading("columna2", text='Cantidad', anchor=CENTER)
         self.tree.column("columna2", width=150, minwidth=75, stretch=False)
         
-        self.tree.heading("columna3", text='Cantidad', anchor=CENTER)
+        self.tree.heading("columna3", text='Categoria', anchor=CENTER)
         self.tree.column("columna3", width=150, minwidth=75, stretch=False)
         
-        self.tree.heading("columna4", text='Precio', anchor=CENTER)
+        self.tree.heading("columna4", text='Descripcion', anchor=CENTER)
         self.tree.column("columna4", width=150, minwidth=75, stretch=False)
         
-        self.tree.heading("columna5", text='Descripcion', anchor=CENTER)
+        self.tree.heading("columna5", text='Precio', anchor=CENTER)
         self.tree.column("columna5", width=150, minwidth=75, stretch=False)
         
         self.tree.grid(row=0, column=0, sticky=E)
