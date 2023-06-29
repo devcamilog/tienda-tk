@@ -7,6 +7,7 @@ from tkinter import ttk
 #importar libreria para el manejo de imagenes
 from PIL import ImageTk, Image
 
+
 class Productos:
     #bd del proyecto
     db_name='bd_proyecto_2560152.db'
@@ -43,7 +44,10 @@ class Productos:
         self.boton_registrar = Productos_menu.add_command(label="Registrar", command=self.widgets_crud, image=self.img_registrar, compound=LEFT)
         self.boton_buscar = Productos_menu.add_command(label="Buscar", command=self.widgets_buscador, image=self.img_buscar, compound=LEFT)
         self.boton_informacion = Informacion_menu.add_command(label="Informacion del sistema", command=self.widgets_informacion, image=self.img_informacion, compound=LEFT)
-        self.boton_clientes = Clientes_menu.add_command(label="Registrar", compound=LEFT)
+        self.boton_clientes = Clientes_menu.add_command(label="Registrar",command=self.widgets_clientes, compound=LEFT)
+        self.boton_clientes_buscar = Clientes_menu.add_command(label="Buscar",command=self.widgets_buscador_clientes, compound=LEFT)
+        self.boton_ventas = Ventas_menu.add_command(label="Registrar", compound=LEFT)
+        self.boton_ventas_buscar = Ventas_menu.add_command(label="Buscar", compound=LEFT)
 
 
          # Widgets del menú
@@ -409,7 +413,47 @@ class Productos:
         self.widgets_crud_remove()
 
     def widgets_clientes(self):
-        pass
+        call([sys.executable,'clientes.py'])
+
+    def widgets_buscador_clientes(self):
+        self.label_titulo_buscador.config(bd=0)
+        self.label_titulo_buscador.grid(row=0, column=0, padx=5, pady=5)
+
+        # Título
+        self.titulo_buscador = Label(self.label_titulo_buscador, text="BUSCADOR DE CLIENTES", fg="black", font=("Comic Sans", 17, "bold"))
+        self.titulo_buscador.grid(row=0, column=0)
+
+        # Frame buscar
+        self.frame_buscar_producto.config(bd=2)
+        self.frame_buscar_producto.grid(row=2, column=0, padx=5, pady=5)
+
+        # Formulario Buscar
+        self.label_buscar = Label(self.frame_buscar_producto, text="Buscar Por: ", font=("Comic Sans", 18, "bold")).grid(row = 0 , column=0, sticky="s", padx=5, pady=5)
+        self.combo_buscar = ttk.Combobox(self.frame_buscar_producto, values=["codigo", "nombre"], width=22, state="readonly")
+        self.combo_buscar.current(0)
+        self.combo_buscar.grid(row=0, column=1, padx=5, pady=5)
+        
+        # Label codigo_nombre
+        self.label_codigo_nombre = Label(self.frame_buscar_producto, text="Codigo / Nombre del Cliente: ", font=("Comic Sans", 10, "bold"))
+        self.label_codigo_nombre.grid(row=0, column=2, sticky='s', padx=5, pady=5)
+        self.codigo_nombre = Entry(self.frame_buscar_producto, width=25)
+        self.codigo_nombre.focus()
+        self.codigo_nombre.grid(row=0, column=3, padx=10, pady=5)
+
+        # Frame marco
+        self.frame_boton_buscar.config(bd=0)
+        self.frame_boton_buscar.grid(row=3, column=0, padx=5, pady=5)
+
+        # Boton
+        self.boton_buscar = Button(self.frame_boton_buscar, text="BUSCAR", command=self.buscar_clientes, height=2, width=28, bg="black", fg="white", font=("Comic Sans", 18, "bold"))
+        self.boton_buscar.grid(row=0, column=0, padx=5, pady=5)
+
+        # Se carga la tabla pero sin datos
+        self.tree.delete(*self.tree.get_children())
+
+        # Remover otros widgets de otros formularios
+        self.widgets_crud_remove()
+        self.label_informacion.grid_remove()
 
     def buscar_productos (self):
 
@@ -440,6 +484,50 @@ class Productos:
         else:
         #sentencia SQL LIKE > inicie por
             query=("SELECT * FROM Productos WHERE nombre LIKE ?")
+            #% permite realizar la busqueda sin tener completa del nombre a buscar (busqueda parcial de la palabra y luego clic en buscar)
+            parameters = (self.codigo_nombre.get()+"%")
+            #enviamos a ejecutar consulta (conexion a la bd para realizar la query) el query y los parametros
+            db_rows = self.ejecutar_consulta(query, (parameters,))
+            #db rows es una lista
+            for row in db_rows:
+                #se inserta las conincidencias de busqueda en la tabla por cada parametro de busqueda
+                self.tree.insert("",0, text=row[1], values=(row[2], row[3], row[4], row[5], row[6]))
+            #busqueda vacia (cuando el producto no esta almacenado en la bd)
+            #al get children lo volvemos una lista o varias o completas en la tabla
+
+            if(list(self.tree.get_children())==[]): 
+                #muestra ventana
+                messagebox.showerror("ERROR","Producto no encontrado")             
+
+    def buscar_clientes (self):
+
+        if(self.validar_busqueda()): #Obtener todos los elementos con get_children(), que retorna una tupla. 
+            records = self.tree.get_children()
+            for element in records:
+                self.tree.delete(element)
+
+        #se puede realizar la busqueda en el formulario por codigo
+
+        #combo_buscar es el combo que tiene los campos por los cuales se puede realizar la busqueda
+
+        if (self.combo_buscar.get()== 'codigo'): #sentencia SQL LIKE-> inicie por una letra o varias o completas
+            query=("SELECT * FROM Clientes WHERE codigo LIKE?")
+            #% permite realizar la busqueda sin tener completa del codigo a buscar (busqueda parcial de la palabra y luego clic en buscar)
+            parameters=(self.codigo_nombre.get()+"%")
+            #enviamos a ejecutar_consulta (conexion a la bd para realizar la query) el query y los parametros 
+            db_rows = self.ejecutar_consulta(query, (parameters,))
+            #db_rows es una lista
+            for row in db_rows:
+            #se inserta las conincidencias de busqueda en la tabla por cada parametro de busqueda
+                self.tree.insert("",0, text=row[1], values=(row[2], row[3], row[4], row[5], row[6])) 
+            #busqueda vacia (cuando el producto no esta almacenado en la bd)
+            #el get children lo volvemos una lista o varias o completas en la tabla
+            if(list(self.tree.get_children())==[]):
+               messagebox.showerror("ERROR", "Producto no encontrado")
+        #muestra ventana
+        else:
+        #sentencia SQL LIKE > inicie por
+            query=("SELECT * FROM Clientes WHERE nombre LIKE ?")
             #% permite realizar la busqueda sin tener completa del nombre a buscar (busqueda parcial de la palabra y luego clic en buscar)
             parameters = (self.codigo_nombre.get()+"%")
             #enviamos a ejecutar consulta (conexion a la bd para realizar la query) el query y los parametros
