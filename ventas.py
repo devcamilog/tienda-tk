@@ -10,14 +10,15 @@ import sqlite3
 
 
 class Login:
+    
     db_name='bd_proyecto_2560152.db'
     #constructor de la clase
-    def __init__(self,ventana_productos):
+    def __init__(self,ventana_ventas):
         pass
         '''--------------Atributos de la ventana----------------'''
-        menubar = Menu(ventana_productos)
+        menubar = Menu(ventana_ventas)
         
-        # self.window = ventana_productos
+        # self.window = ventana_ventas
         # #titulo a la ventana
         # self.window.title("PRODUCTOS")
         # #tamaño de la venta
@@ -30,11 +31,11 @@ class Login:
         # self.window.config(bd=10)
         
         '''---------------Titulo de la ventana------------------'''
-        titulo = Label(ventana_productos, text="LISTA DE VENTAS", fg="black",font=("Comic Sans MS",13, "bold"), pady=10).pack()
+        titulo = Label(ventana_ventas, text="LISTA DE VENTAS", fg="black",font=("Comic Sans MS",13, "bold"), pady=10).pack()
         
         '''--------------FRAME DE LOS PRODUCTOS--------------------'''
         
-        frame_imagen = Frame(ventana_productos)
+        frame_imagen = Frame(ventana_ventas)
         frame_imagen.pack()
         
         #imagenes
@@ -70,11 +71,11 @@ class Login:
         
         
         '''---------------Marco de la ventana ------------------'''
-        marco = LabelFrame(ventana_productos, text="Informacion del cliente", font=("Comic Sans MS", 10, "bold"))
+        marco = LabelFrame(ventana_ventas, text="Informacion de las ventas", font=("Comic Sans MS", 10, "bold"))
         marco.pack()
         
         '''---------------Formulario de la ventana ------------------'''
-        label_codigo_cliente = Label(marco, text="ID cliente: ",font=("Comic Sans MS", 10, "bold")).grid(row=0, column=0,sticky='s', padx=5, pady=10)
+        label_codigo_cliente = Label(marco, text="ID venta: ",font=("Comic Sans MS", 10, "bold")).grid(row=0, column=0,sticky='s', padx=5, pady=10)
         self.codigo_cliente = Entry(marco,width=25)
         self.codigo_cliente.focus()
         self.codigo_cliente.grid(row=0, column=1, padx=5, pady=10)
@@ -106,17 +107,17 @@ class Login:
         self.cedula_cliente.grid(row=2, column=3, padx=5, pady=10)
 
         '''---------------Frame botones de la ventana ------------------'''
-        frame_botones = Frame(ventana_productos)
+        frame_botones = Frame(ventana_ventas)
         frame_botones.pack()
 
         '''------------------- botones de la ventana ------------------'''
-        boton_registrar = Button(frame_botones, text="REGISTRAR",command=self.agregar_cliente,height=2,width=12, bg="Blue", fg="white",font=("Comic Sans MS", 10, "bold")).grid(row=0, column=0,padx=10,pady=15)
+        boton_registrar = Button(frame_botones, text="AGREGAR",command=self.agregar_cliente,height=2,width=12, bg="Blue", fg="white",font=("Comic Sans MS", 10, "bold")).grid(row=0, column=0,padx=10,pady=15)
         boton_editar = Button(frame_botones, text="EDITAR",command=self.editar_cliente,height=2,width=12, bg="orange", fg="white",font=("Comic Sans MS", 10, "bold")).grid(row=0, column=1,padx=10,pady=15)
         boton_eliminar = Button(frame_botones, text="ELIMINAR",command=self.eliminar_cliente,height=2,width=12, bg="red", fg="white",font=("Comic Sans MS", 10, "bold")).grid(row=0, column=2,padx=10,pady=15)
         boton_salir = Button(frame_botones, text="SALIR",command=self.cerrarVentana,height=2,width=12, bg="green", fg="white",font=("Comic Sans MS", 10, "bold")).grid(row=0, column=3,padx=10,pady=15)
 
         '''---------------Frame botones de la ventana ------------------'''
-        frame_botonesRP = Frame(ventana_productos)
+        frame_botonesRP = Frame(ventana_ventas)
         frame_botonesRP.pack()
         
         '''---------------Tabla con la lista de los productos ------------------'''
@@ -142,17 +143,17 @@ class Login:
 
         self.tree.pack()
     
-        self.listar_cliente()
+        self.listar_clientes()
         
 
     def agregar_cliente(self):
-        if self.validar_formulario() and self.validar_cliente():
-            query = 'INSERT INTO Productos VALUES(NULL, ? , ? , ?, ?, ? , ?)' 
+        if self.validar_formulario() and self.validar_clientes():
+            query = 'INSERT INTO Clientes VALUES(NULL, ? , ? , ?, ?, ? , ?)' 
             parameters = (self.codigo_cliente.get(),self.nombre_cliente.get(),self.apellido_cliente.get(),self.correo_cliente.get(),self.telefono_cliente.get(),self.cedula_cliente.get())
             self.ejecutar_consulta(query,parameters)
-            messagebox.showinfo("REGISTRO EXITOSO", "Agregaste un producto")
+            messagebox.showinfo("REGISTRO EXITOSO", "Agregaste un cliente")
             self.limpiar_formulario()
-            self.listar_cliente()
+            self.listar_clientes()
     
     def validar_formulario(self):
         if len(self.codigo_cliente.get()) !=0 and len(self.nombre_cliente.get()) !=0 and len(self.apellido_cliente.get()) !=0 and len(self.correo_cliente.get()) !=0 and len(self.telefono_cliente.get()) !=0 and len(self.cedula_cliente.get()) !=0 :
@@ -171,7 +172,7 @@ class Login:
         #se retorna el resultado de la ejecucion de la sentencia SQL
         return result
 
-    def validar_cliente(self):
+    def validar_clientes(self):
         #se obtiene el atributo producto del formulario y se almacena en la variable producto
         codigo = self.codigo_cliente.get()
         #se invoca el metodo buscar producto y se envia el producto ingresado en el formulario
@@ -182,14 +183,14 @@ class Login:
             return True
         else:
             #se crea una ventana de error si el producto ya existe en la bd
-            messagebox.showerror("ERROR EN REGISTRO", " producto registrado anteriormente")
+            messagebox.showerror("ERROR EN REGISTRO", " cliente registrado anteriormente")
             
-    def buscar_cliente(self, producto):
+    def buscar_cliente(self, cliente):
         #conexion SQL
         with sqlite3.connect(self.db_name) as conexion:
             cursor = conexion.cursor()
-            #consulta SQL FORMAT(producto) es el producto que se ingreso al formulario
-            sql = "SELECT * FROM Productos WHERE nombre = {}".format(producto)
+            #consulta SQL FORMAT(cliente) es el cliente que se ingreso al formulario
+            sql = "SELECT * FROM Clientes WHERE nombre = {}".format(cliente)
             #ejecucion de la consulta sql
             cursor.execute(sql)
             producto_consulta = cursor.fetchall() # obtener respuesta como lista
@@ -207,14 +208,14 @@ class Login:
         self.telefono_cliente.delete(0, END)
            
     def cerrarVentana(self):
-        ventana_productos.destroy()
+        ventana_ventas.destroy()
         
-    def listar_cliente(self):
+    def listar_clientes(self):
         records = self.tree.get_children()
         for element in records:
             self.tree.delete(element)
             
-        query = 'SELECT * FROM Productos ORDER BY nombre DESC'
+        query = 'SELECT * FROM Clientes ORDER BY nombre DESC'
         db_rows = self.ejecutar_consulta(query)
         for row in db_rows:
             self.tree.insert("",0, text=row[1], values=(row[2], row[3], row[4], row[5], row[6]))
@@ -226,11 +227,11 @@ class Login:
             messagebox.showerror("ERROR", "Debe seleccionar un producto de la tabla")
         dato = self.tree.item(self.tree.selection())['text']
         nombre = self.tree.item(self.tree.selection())['values'][0]
-        query = "DELETE FROM Productos WHERE codigo = ?"
+        query = "DELETE FROM Clientes WHERE codigo = ?"
         respuesta = messagebox.askquestion("ADVERTENCIA", f"¿?Esta seguro que desea eliminar el producto: {nombre}?")
         if respuesta == 'yes':
             self.ejecutar_consulta(query,(dato,))
-            self.listar_cliente()
+            self.listar_clientes()
             messagebox.showinfo('EXITO',f'Producto elminado: {nombre}')
         else:
             messagebox.showerror('ERROR', f'Error al eliminar el producto: {nombre}')
@@ -249,11 +250,11 @@ class Login:
             telefono = self.tree.item(self.tree.selection())['values'][4]
 
             self.ventana_editar = Toplevel()
-            self.ventana_editar.title("EDITAR PRODUCTO")
-            #incluir un icono a la ventana
-            self.ventana_editar.iconbitmap("Imagen.ico")
-            #modificar o no las dimensiones de la ventana
-            self.ventana_editar.resizable(0,0)
+            # self.ventana_editar.title("EDITAR PRODUCTO")
+            # #incluir un icono a la ventana
+            # self.ventana_editar.iconbitmap("Imagen.ico")
+            # #modificar o no las dimensiones de la ventana
+            # self.ventana_editar.resizable(0,0)
 
             label_codigo_cliente = Label(self.ventana_editar, text="Id cliente:", font=("Comic Sans", 10, "bold")).grid(row=0, column=0, sticky='s', padx=5, pady=8)
             nuevo_codigo_cliente = Entry(self.ventana_editar, textvariable=StringVar(self.ventana_editar, value=codigo_cliente), width=25)
@@ -268,26 +269,32 @@ class Login:
             nuevo_apellido.grid(row=2, column=1, padx=5, pady=0)
 
             label_correo = Label(self.ventana_editar, text="Correo:", font=("Comic Sans", 10, "bold")).grid(row=0, column=2, sticky='s', padx=5, pady=8)
-            nuevo_combo_correo = ttk.Combobox(self.ventana_editar, values=["Gafas", "Ropa", "Gorra"], width=22, state="readonly")
-            nuevo_combo_correo.set(correo)
+            nuevo_combo_correo = Entry(self.ventana_editar, textvariable=StringVar(self.ventana_editar, value=correo), width=25)
             nuevo_combo_correo.grid(row=0, column=3, padx=5, pady=0)
 
 
             label_telefono = Label(self.ventana_editar, text="Telefono:", font=("Comic Sans", 10, "bold")).grid(row=1, column=2, sticky='s', padx=5, pady=8)
-            nueva_telefono = Entry(self.ventana_editar, textvariable=StringVar(self.ventana_editar, value=telefono), width=25)
-            nueva_telefono.grid(row=2, column=3, padx=5, pady=0)
+            nuevo_telefono = Entry(self.ventana_editar, textvariable=StringVar(self.ventana_editar, value=telefono), width=25)
+            nuevo_telefono.grid(row=2, column=3, padx=5, pady=0)
 
             label_cedula = Label(self.ventana_editar, text="Cedula:", font=("Comic Sans", 10, "bold")).grid(row=2, column=2, sticky='s', padx=5, pady=8)
             nuevo_cedula = Entry(self.ventana_editar, textvariable=StringVar(self.ventana_editar, value=cedula), width=25)
             nuevo_cedula.grid(row=1, column=3, padx=5, pady=0)
 
-            boton_actualizar = Button(self.ventana_editar, text="ACTUALIZAR", command=lambda:self.actualizar(nuevo_codigo_cliente.get(), nuevo_nombre.get(), nuevo_apellido.get(), nuevo_combo_correo.get(), label_telefono.get(), nuevo_cedula.get(), codigo_cliente), height=2, width=20, bg="blue", fg="white", font=("Comic Sans MS", 9, "bold"))
+            boton_actualizar = Button(self.ventana_editar, text="ACTUALIZAR", command=lambda:self.actualizar(nuevo_codigo_cliente.get(), nuevo_nombre.get(), nuevo_apellido.get(), nuevo_combo_correo.get(), nuevo_telefono.get(), nuevo_cedula.get(), codigo_cliente), height=2, width=20, bg="blue", fg="white", font=("Comic Sans MS", 9, "bold"))
             boton_actualizar.grid(row=3, column=1, columnspan=2, padx=10, pady=15)
 
             self.ventana_editar.mainloop()
 
-  
+    def actualizar(self,nuevo_codigo_cliente, nuevo_nombre,nuevo_apellido,nuevo_combo_correo,nuevo_telefono,nuevo_cedula,codigo_cliente):
+        query ='UPDATE Clientes SET codigo= ?, nombre= ?, apellido= ?, correo = ?, telefono= ?, cedula = ? WHERE codigo = ?'
+        parameters = (nuevo_codigo_cliente, nuevo_nombre, nuevo_apellido, nuevo_combo_correo, nuevo_telefono, nuevo_cedula, codigo_cliente)
+        self.ejecutar_consulta(query, parameters)
+        messagebox.showinfo('EXITO', f'Cliente Actualizado:{nuevo_nombre}')
+        self.ventana_editar.destroy()
+        self.listar_clientes()
+
 if __name__ == '__main__':
-    ventana_productos = Tk() 
-    application = Login(ventana_productos)
-    ventana_productos.mainloop()    
+    ventana_ventas = Tk() 
+    application = Login(ventana_ventas)
+    ventana_ventas.mainloop()    
