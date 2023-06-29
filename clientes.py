@@ -10,7 +10,7 @@ import sqlite3
 
 
 class Login:
-    
+    db_name='bd_proyecto_2560152.db'
     #constructor de la clase
     def __init__(self,ventana_productos):
         pass
@@ -110,9 +110,9 @@ class Login:
         frame_botones.pack()
 
         '''------------------- botones de la ventana ------------------'''
-        boton_registrar = Button(frame_botones, text="REGISTRAR",command=self.agregar_producto,height=2,width=12, bg="Blue", fg="white",font=("Comic Sans MS", 10, "bold")).grid(row=0, column=0,padx=10,pady=15)
-        boton_editar = Button(frame_botones, text="EDITAR",command=self.editar_producto,height=2,width=12, bg="orange", fg="white",font=("Comic Sans MS", 10, "bold")).grid(row=0, column=1,padx=10,pady=15)
-        boton_eliminar = Button(frame_botones, text="ELIMINAR",command=self.eliminar_producto,height=2,width=12, bg="red", fg="white",font=("Comic Sans MS", 10, "bold")).grid(row=0, column=2,padx=10,pady=15)
+        boton_registrar = Button(frame_botones, text="REGISTRAR",command=self.agregar_cliente,height=2,width=12, bg="Blue", fg="white",font=("Comic Sans MS", 10, "bold")).grid(row=0, column=0,padx=10,pady=15)
+        boton_editar = Button(frame_botones, text="EDITAR",command=self.editar_cliente,height=2,width=12, bg="orange", fg="white",font=("Comic Sans MS", 10, "bold")).grid(row=0, column=1,padx=10,pady=15)
+        boton_eliminar = Button(frame_botones, text="ELIMINAR",command=self.eliminar_cliente,height=2,width=12, bg="red", fg="white",font=("Comic Sans MS", 10, "bold")).grid(row=0, column=2,padx=10,pady=15)
         boton_salir = Button(frame_botones, text="SALIR",command=self.cerrarVentana,height=2,width=12, bg="green", fg="white",font=("Comic Sans MS", 10, "bold")).grid(row=0, column=3,padx=10,pady=15)
 
         '''---------------Frame botones de la ventana ------------------'''
@@ -142,17 +142,17 @@ class Login:
 
         self.tree.pack()
     
-        self.listar_productos()
+        self.listar_cliente()
         
 
-    def agregar_producto(self):
-        if self.validar_formulario() and self.validar_producto():
+    def agregar_cliente(self):
+        if self.validar_formulario() and self.validar_cliente():
             query = 'INSERT INTO Productos VALUES(NULL, ? , ? , ?, ?, ? , ?)' 
             parameters = (self.codigo_cliente.get(),self.nombre_cliente.get(),self.apellido_cliente.get(),self.correo_cliente.get(),self.telefono_cliente.get(),self.cedula_cliente.get())
             self.ejecutar_consulta(query,parameters)
             messagebox.showinfo("REGISTRO EXITOSO", "Agregaste un producto")
             self.limpiar_formulario()
-            self.listar_productos()
+            self.listar_cliente()
     
     def validar_formulario(self):
         if len(self.codigo_cliente.get()) !=0 and len(self.nombre_cliente.get()) !=0 and len(self.apellido_cliente.get()) !=0 and len(self.correo_cliente.get()) !=0 and len(self.telefono_cliente.get()) !=0 and len(self.cedula_cliente.get()) !=0 :
@@ -171,20 +171,20 @@ class Login:
         #se retorna el resultado de la ejecucion de la sentencia SQL
         return result
 
-    def validar_producto(self):
+    def validar_cliente(self):
         #se obtiene el atributo producto del formulario y se almacena en la variable producto
         codigo = self.codigo_cliente.get()
         #se invoca el metodo buscar producto y se envia el producto ingresado en el formulario
         #lo que retorne el metodo se almacena en la variable dato
-        dato = self.buscar_producto(codigo)
-        #si el metodo buscar_producto devuelve a dato una cadena vacia es porque el dni no existe
+        dato = self.buscar_cliente(codigo)
+        #si el metodo buscar_cliente devuelve a dato una cadena vacia es porque el dni no existe
         if (dato == []):
             return True
         else:
             #se crea una ventana de error si el producto ya existe en la bd
             messagebox.showerror("ERROR EN REGISTRO", " producto registrado anteriormente")
             
-    def buscar_producto(self, producto):
+    def buscar_cliente(self, producto):
         #conexion SQL
         with sqlite3.connect(self.db_name) as conexion:
             cursor = conexion.cursor()
@@ -209,7 +209,7 @@ class Login:
     def cerrarVentana(self):
         ventana_productos.destroy()
         
-    def listar_productos(self):
+    def listar_cliente(self):
         records = self.tree.get_children()
         for element in records:
             self.tree.delete(element)
@@ -219,7 +219,7 @@ class Login:
         for row in db_rows:
             self.tree.insert("",0, text=row[1], values=(row[2], row[3], row[4], row[5], row[6]))
 
-    def eliminar_producto(self):
+    def eliminar_cliente(self):
         try:
             self.tree.item(self.tree.selection())['values'][0]
         except IndexError as e:
@@ -230,12 +230,12 @@ class Login:
         respuesta = messagebox.askquestion("ADVERTENCIA", f"¿?Esta seguro que desea eliminar el producto: {nombre}?")
         if respuesta == 'yes':
             self.ejecutar_consulta(query,(dato,))
-            self.listar_productos()
+            self.listar_cliente()
             messagebox.showinfo('EXITO',f'Producto elminado: {nombre}')
         else:
             messagebox.showerror('ERROR', f'Error al eliminar el producto: {nombre}')
 
-    def editar_producto(self):
+    def editar_cliente(self):
             try:
                 self.tree.item(self.tree.selection())['values'][0]
             except IndexError as e:
