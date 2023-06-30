@@ -120,7 +120,7 @@ class Login:
         frame_botonesRP = Frame(ventana_clientes)
         frame_botonesRP.pack()
         
-        '''---------------Tabla con la lista de los productos ------------------'''
+        '''---------------Tabla con la lista de los clientes ------------------'''
         self.tree = ttk.Treeview(height=13,columns=("columna1","columna2","columna3","columna4","columna5"))
         self.tree.heading("#0", text='Codigo Cliente', anchor=CENTER)
         self.tree.column("#0", width=90, minwidth=75, stretch=False)
