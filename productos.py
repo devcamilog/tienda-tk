@@ -8,7 +8,6 @@ from tkinter import ttk
 from PIL import ImageTk, Image
 
 
-
 class Productos:
     #bd del proyecto
     db_name='bd_proyecto_2560152.db'
@@ -63,13 +62,26 @@ class Productos:
         self.frame_buscar_producto= LabelFrame(ventana_productos, text="Buscar producto", font=("Comic Sans", 10,"bold"),pady=5)
         self.frame_boton_buscar =  LabelFrame(ventana_productos)
 
-        
-
+        #widget informacion
         self.label_informacion= LabelFrame(ventana_productos)
+
+        #widgets cliente
+        self.label_titulo_buscador_cliente = LabelFrame(ventana_productos)
+        self.frame_tabla_clientes=LabelFrame(ventana_productos)
+        self.frame_buscar_cliente = LabelFrame(ventana_productos,text="Buscar Cliente",font=("Comic Sans", 10,"bold"),pady=10)
+        self.frame_boton_buscar_clientes =  LabelFrame(ventana_productos)
+
+        #widgets venta
+        self.label_titulo_buscador_venta = LabelFrame(ventana_productos)
+        self.frame_tabla_ventas=LabelFrame(ventana_productos)
+        self.frame_buscar_ventas = LabelFrame(ventana_productos,text="Buscar Ventas",font=("Comic Sans", 10,"bold"),pady=10)      
+        self.frame_boton_buscar_ventas =  LabelFrame(ventana_productos)
+
         #pantalla incial
         self.widgets_crud()
-     
-    def validar_formulario(self): #se valida que no se encuntre vacio el formulario:
+    
+    '''**************PRODUCTOS*************'''
+    def validar_formulario(self): #se valida que no se encuentre vacio el formulario:
 
         if len(self.codigo_producto.get()) !=0 and len(self.nombre_producto.get())  !=0 and len(self.cantidad.get()) !=0 and len(self.categoria.get())  !=0 and len(self.desc_producto.get())  !=0 and len(self.precio.get()) !=0:
             # retona True al metodo registrar usuario cuando todos los campos esten con información
@@ -189,7 +201,62 @@ class Productos:
         boton_actualizar.grid(row=3, column=1, columnspan=2, padx=10, pady=15)
 
         self.ventana_editar.mainloop()
+
+    def buscar_productos (self):
+
+        if(self.validar_busqueda()): #Obtener todos los elementos con get_children(), que retorna una tupla. 
+            records = self.tree.get_children()
+            for element in records:
+                self.tree.delete(element)
+
+        #se puede realizar la busqueda en el formulario por codigo
+
+        #combo_buscar es el combo que tiene los campos por los cuales se puede realizar la busqueda
+
+        if (self.combo_buscar.get()== 'codigo'): #sentencia SQL LIKE-> inicie por una letra o varias o completas
+            query=("SELECT * FROM Productos WHERE codigo LIKE?")
+            #% permite realizar la busqueda sin tener completa del codigo a buscar (busqueda parcial de la palabra y luego clic en buscar)
+            parameters=(self.codigo_nombre.get()+"%")
+            #enviamos a ejecutar_consulta (conexion a la bd para realizar la query) el query y los parametros 
+            db_rows = self.ejecutar_consulta(query, (parameters,))
+            #db_rows es una lista
+            for row in db_rows:
+            #se inserta las conincidencias de busqueda en la tabla por cada parametro de busqueda
+                self.tree.insert("",0, text=row[1], values=(row[2], row[3], row[4], row[5], row[6])) 
+            #busqueda vacia (cuando el producto no esta almacenado en la bd)
+            #el get children lo volvemos una lista o varias o completas en la tabla
+            if(list(self.tree.get_children())==[]):
+               messagebox.showerror("ERROR", "Producto no encontrado")
+        #muestra ventana
+        else:
+        #sentencia SQL LIKE > inicie por
+            query=("SELECT * FROM Productos WHERE nombre LIKE ?")
+            #% permite realizar la busqueda sin tener completa del nombre a buscar (busqueda parcial de la palabra y luego clic en buscar)
+            parameters = (self.codigo_nombre.get()+"%")
+            #enviamos a ejecutar consulta (conexion a la bd para realizar la query) el query y los parametros
+            db_rows = self.ejecutar_consulta(query, (parameters,))
+            #db rows es una lista
+            for row in db_rows:
+                #se inserta las conincidencias de busqueda en la tabla por cada parametro de busqueda
+                self.tree.insert("",0, text=row[1], values=(row[2], row[3], row[4], row[5], row[6]))
+            #busqueda vacia (cuando el producto no esta almacenado en la bd)
+            #al get children lo volvemos una lista o varias o completas en la tabla
+
+            if(list(self.tree.get_children())==[]): 
+                #muestra ventana
+                messagebox.showerror("ERROR","Producto no encontrado")             
     
+    def listar_productos(self):
+        records = self.tree.get_children()
+        for element in records:
+            self.tree.delete(element)
+            
+        query = 'SELECT * FROM Productos ORDER BY nombre DESC'
+        db_rows = self.ejecutar_consulta(query)
+        for row in db_rows:
+            self.tree.insert("",0, text=row[1], values=(row[2], row[3], row[4], row[5], row[6]))
+            
+    '''*****************WIDGETS*****************'''
     def widgets_crud(self):
 
         #cada que se inicie el sistema se carga el CRUD
@@ -321,16 +388,19 @@ class Productos:
         self.tree.column("columna5", width=150, minwidth=75, stretch=False)
 
         self.tree.grid(row=0, column=0, sticky=E)
+
         self.listar_productos()
         self.widgets_buscador_remove()
-        self.label_informacion.grid_remove()
-
+        self.widgets_cliente_remove()
+        self.widgets_ventas_remove()
+        self.widgets_informacion_remove()
+  
     def widgets_buscador(self):
         self.label_titulo_buscador.config(bd=0)
         self.label_titulo_buscador.grid(row=0, column=0, padx=5, pady=5)
 
         # Título
-        self.titulo_buscador = Label(self.label_titulo_buscador, text="BUSCADOR DE PRODUCTOS", fg="black", font=("Comic Sans", 17, "bold"))
+        self.titulo_buscador = Label(self.label_titulo_buscador, text="BUSCADOR DE PRODUCTOS", fg="red", font=("Comic Sans", 17, "bold"))
         self.titulo_buscador.grid(row=0, column=0)
 
         # Frame buscar
@@ -358,24 +428,39 @@ class Productos:
         self.boton_buscar = Button(self.frame_boton_buscar, text="BUSCAR", command=self.buscar_productos, height=2, width=28, bg="black", fg="white", font=("Comic Sans", 18, "bold"))
         self.boton_buscar.grid(row=0, column=0, padx=5, pady=5)
 
+        '''------------ Tabla con la lista de Productos ------------'''
+        self.frame_tabla_crud.config(bd=2)
+        self.frame_tabla_crud.grid(row=4, column=0, padx=5, pady=5)
+        self.tree = ttk.Treeview(self.frame_tabla_crud, height=13, columns=("columna1", "columna2", "columna3", "columna4", "columna5"))
+        self.tree.heading("#0", text='Codigo Producto', anchor=CENTER)
+        self.tree.column("#0", width=90, minwidth=75, stretch=False)
+
+        self.tree.heading("columna1", text='Nombre', anchor=CENTER)
+        self.tree.column("columna1", width=150, minwidth=75, stretch=False)
+        
+        self.tree.heading("columna2", text='Cantidad', anchor=CENTER)
+        self.tree.column("columna2", width=150, minwidth=75, stretch=False)
+        
+        self.tree.heading("columna3", text='Categoria', anchor=CENTER)
+        self.tree.column("columna3", width=150, minwidth=75, stretch=False)
+        
+        self.tree.heading("columna4", text='Descripcion', anchor=CENTER)
+        self.tree.column("columna4", width=150, minwidth=75, stretch=False)
+        
+        self.tree.heading("columna5", text='Precio', anchor=CENTER)
+        self.tree.column("columna5", width=150, minwidth=75, stretch=False)
+
+        self.tree.grid(row=0, column=0, sticky=E)
+
+
         # Se carga la tabla pero sin datos
         self.tree.delete(*self.tree.get_children())
 
         # Remover otros widgets de otros formularios
         self.widgets_crud_remove()
-        self.label_informacion.grid_remove()
-        
-    def widgets_crud_remove(self):
-        # Remove permite que al cambiar de una ventana a otra se limpie (cargue la nueva ventana solicitada, pasara de registro a buscar o viceversa)
-        # Se limpia label y se carga los nuevos
-        self.label_titulo_crud.grid_remove()
-        self.frame_registro.grid_remove()
-        self.frame_botones_registro.grid_remove()
-
-    def widgets_buscador_remove(self):
-        self.label_titulo_buscador.grid_remove()
-        self.frame_buscar_producto.grid_remove()
-        self.frame_boton_buscar.grid_remove()
+        self.widgets_informacion_remove()
+        self.widgets_cliente_remove()    
+        self.widgets_ventas_remove()    
 
     def widgets_informacion(self):
         # Se ocultan los frame de los logos y de la tabla para que no carguen en Ayuda
@@ -417,134 +502,174 @@ class Productos:
 
     def widgets_clientes(self):
         call([sys.executable,'clientes.py'])
-
+  
     def widgets_ventas(self):
         call([sys.executable,'ventas.py'])
 
     def widgets_buscador_clientes(self):
-        self.label_titulo_buscador.config(bd=0)
-        self.label_titulo_buscador.grid(row=0, column=0, padx=5, pady=5)
+        self.label_titulo_buscador_cliente.config(bd=0)
+        self.label_titulo_buscador_cliente.grid(row=0, column=0, padx=5, pady=5)
 
         # Título
-        self.titulo_buscador = Label(self.label_titulo_buscador, text="BUSCADOR DE CLIENTES", fg="black", font=("Comic Sans", 17, "bold"))
+        self.titulo_buscador = Label(self.label_titulo_buscador_cliente, text="BUSCADOR DE CLIENTES", fg="black", font=("Comic Sans", 17, "bold"))
         self.titulo_buscador.grid(row=0, column=0)
 
         # Frame buscar
-        self.frame_buscar_producto.config(bd=2)
-        self.frame_buscar_producto.grid(row=2, column=0, padx=5, pady=5)
+        self.frame_buscar_cliente.config(bd=2)
+        self.frame_buscar_cliente.grid(row=1, column=0, padx=5, pady=5)
 
         # Formulario Buscar
-        self.label_buscar = Label(self.frame_buscar_producto, text="Buscar Por: ", font=("Comic Sans", 18, "bold")).grid(row = 0 , column=0, sticky="s", padx=5, pady=5)
-        self.combo_buscar = ttk.Combobox(self.frame_buscar_producto, values=["codigo", "nombre"], width=22, state="readonly")
+        self.label_buscar = Label(self.frame_buscar_cliente, text="Buscar Por: ", font=("Comic Sans", 18, "bold")).grid(row = 0 , column=0, sticky="s", padx=5, pady=5)
+        self.combo_buscar = ttk.Combobox(self.frame_buscar_cliente, values=["codigo", "nombre"], width=22, state="readonly")
         self.combo_buscar.current(0)
         self.combo_buscar.grid(row=0, column=1, padx=5, pady=5)
         
         # Label codigo_nombre
-        self.label_codigo_nombre = Label(self.frame_buscar_producto, text="Codigo o Nombre del Cliente: ", font=("Comic Sans", 10, "bold"))
+        self.label_codigo_nombre = Label(self.frame_buscar_cliente, text="Codigo / Nombre del cliente: ", font=("Comic Sans", 10, "bold"))
         self.label_codigo_nombre.grid(row=0, column=2, sticky='s', padx=5, pady=5)
-        self.codigo_nombre = Entry(self.frame_buscar_producto, width=25)
+        self.codigo_nombre = Entry(self.frame_buscar_cliente, width=25)
         self.codigo_nombre.focus()
         self.codigo_nombre.grid(row=0, column=3, padx=10, pady=5)
 
         # Frame marco
-        self.frame_boton_buscar.config(bd=0)
-        self.frame_boton_buscar.grid(row=3, column=0, padx=5, pady=5)
+        self.frame_boton_buscar_clientes.config(bd=0)
+        self.frame_boton_buscar_clientes.grid(row=3, column=0, padx=5, pady=5)
 
         # Boton
-        self.boton_buscar = Button(self.frame_boton_buscar, text="BUSCAR", command=self.buscar_clientes, height=2, width=28, bg="black", fg="white", font=("Comic Sans", 18, "bold"))
-        self.boton_buscar.grid(row=0, column=0, padx=5, pady=5)
-
-        # Se carga la tabla pero sin datos
-        self.tree2.delete(*self.tree2.get_children())
-
-        # Remover otros widgets de otros formularios
-        self.widgets_crud_remove()
-        self.label_informacion.grid_remove()
-
-    def widgets_buscador_ventas(self):
-        self.label_titulo_buscador.config(bd=0)
-        self.label_titulo_buscador.grid(row=0, column=0, padx=5, pady=5)
-
-        # Título
-        self.titulo_buscador = Label(self.label_titulo_buscador, text="BUSCADOR DE VENTAS", fg="black", font=("Comic Sans", 17, "bold"))
-        self.titulo_buscador.grid(row=0, column=0)
-
-        # Frame buscar
-        self.frame_buscar_producto.config(bd=2)
-        self.frame_buscar_producto.grid(row=2, column=0, padx=5, pady=5)
-
-        # Formulario Buscar
-        self.label_buscar = Label(self.frame_buscar_producto, text="Buscar Por: ", font=("Comic Sans", 18, "bold")).grid(row = 0 , column=0, sticky="s", padx=5, pady=5)
-        self.combo_buscar = ttk.Combobox(self.frame_buscar_producto, values=["codigo", "nombre"], width=22, state="readonly")
-        self.combo_buscar.current(0)
-        self.combo_buscar.grid(row=0, column=1, padx=5, pady=5)
-        
-        # Label codigo_nombre
-        self.label_codigo_nombre = Label(self.frame_buscar_producto, text="Codigo de cliente/ Codigo de producto : ", font=("Comic Sans", 10, "bold"))
-        self.label_codigo_nombre.grid(row=0, column=2, sticky='s', padx=5, pady=5)
-        self.codigo_nombre = Entry(self.frame_buscar_producto, width=25)
-        self.codigo_nombre.focus()
-        self.codigo_nombre.grid(row=0, column=3, padx=10, pady=5)
-
-        # Frame marco
-        self.frame_boton_buscar.config(bd=0)
-        self.frame_boton_buscar.grid(row=3, column=0, padx=5, pady=5)
-
-        # Boton
-        self.boton_buscar = Button(self.frame_boton_buscar, text="BUSCAR", command=self.buscar_ventas, height=2, width=28, bg="black", fg="white", font=("Comic Sans", 18, "bold"))
+        self.boton_buscar = Button(self.frame_boton_buscar_clientes, text="BUSCAR", command=self.buscar_clientes, height=2, width=28, bg="black", fg="white", font=("Comic Sans", 18, "bold"))
         self.boton_buscar.grid(row=0, column=0, padx=5, pady=5)
 
         # Se carga la tabla pero sin datos
         self.tree.delete(*self.tree.get_children())
 
+        '''---------------Tabla con la lista de las ventas ------------------'''
+        self.frame_tabla_clientes.config(bd=2)
+        self.frame_tabla_clientes.grid(row=4,column=0,padx=5,pady=5)
+
+        self.tree = ttk.Treeview(self.frame_tabla_clientes,height=13,columns=("columna1","columna2","columna3","columna4","columna5"))
+        self.tree.heading("#0", text='Codigo Cliente', anchor=CENTER)
+        self.tree.column("#0", width=90, minwidth=75, stretch=False)
+        
+        self.tree.heading("columna1",text='Nombre', anchor=CENTER)
+        self.tree.column("columna1", width=150, minwidth=75, stretch=False)
+
+        self.tree.heading("columna2",text='Apellido', anchor=CENTER)
+        self.tree.column("columna2", width=150, minwidth=75, stretch=False)
+
+        self.tree.heading("columna3",text='Correo', anchor=CENTER)
+        self.tree.column("columna3", width=150, minwidth=75, stretch=False)
+
+        self.tree.heading("columna4",text='Telefono', anchor=CENTER)
+        self.tree.column("columna4", width=150, minwidth=75, stretch=False)
+
+        self.tree.heading("columna5",text='Cedula', anchor=CENTER)
+        self.tree.column("columna5", width=150, minwidth=75, stretch=False)
+
+        self.tree.grid(row=0,column=0,sticky=E)
+
+
         # Remover otros widgets de otros formularios
         self.widgets_crud_remove()
+        self.widgets_ventas_remove()
+        self.widgets_buscador_remove()
+        self.widgets_ventas_remove()
+        self.widgets_informacion_remove()
+        self.frame_tabla_crud.grid_remove()
+        self.frame_tabla_ventas.grid_remove()
+        self.label_titulo_buscador_venta.grid_remove()
+
+    def widgets_buscador_ventas(self):
+        self.label_titulo_buscador_venta.config(bd=0)
+        self.label_titulo_buscador_venta.grid(row=0, column=0, padx=5, pady=5)
+
+        # Título
+        self.titulo_buscador = Label(self.label_titulo_buscador_venta, text="BUSCADOR DE VENTAS", fg="blue", font=("Comic Sans", 17, "bold"))
+        self.titulo_buscador.grid(row=0, column=0)
+
+        # Frame buscar
+        self.frame_buscar_ventas.config(bd=2)
+        self.frame_buscar_ventas.grid(row=2, column=0, padx=5, pady=5)
+
+        # Formulario Buscar
+        self.label_buscar = Label(self.frame_buscar_ventas, text="Buscar Por: ", font=("Comic Sans", 18, "bold")).grid(row = 1, column=0, sticky="s", padx=5, pady=5)
+        self.combo_buscar = ttk.Combobox(self.frame_buscar_ventas, values=["codigo cliente", "ID VENTA"], width=22, state="readonly")
+        self.combo_buscar.current(0)
+        self.combo_buscar.grid(row=1, column=1, padx=5, pady=5)
+        
+        # Label codigo_venta
+        self.label_codigo_nombre = Label(self.frame_buscar_ventas, text="Codigo de cliente/ ID de venta : ", font=("Comic Sans", 10, "bold"))
+        self.label_codigo_nombre.grid(row=0, column=2, sticky='s', padx=5, pady=5)
+        self.codigo_venta = Entry(self.frame_buscar_ventas, width=25)
+        self.codigo_venta.focus()
+        self.codigo_venta.grid(row=0, column=3, padx=10, pady=5)
+
+        # Frame marco
+        self.frame_boton_buscar_ventas.config(bd=0)
+        self.frame_boton_buscar_ventas.grid(row=3, column=0, padx=5, pady=5)
+
+        # Boton
+        self.boton_buscar = Button(self.frame_boton_buscar_ventas, text="BUSCAR", command=self.buscar_ventas, height=2, width=28, bg="black", fg="white", font=("Comic Sans", 18, "bold"))
+        self.boton_buscar.grid(row=1, column=0, padx=5, pady=5)
+
+        # Se carga la tabla pero sin datos
+        self.tree.delete(*self.tree.get_children())
+
+        '''---------------Tabla con la lista de los productos ------------------'''
+        self.frame_tabla_ventas.config(bd=2)
+        self.frame_tabla_ventas.grid(row=4,column=0,padx=5,pady=5)
+
+        self.tree = ttk.Treeview(self.frame_tabla_ventas,height=13,columns=("columna1","columna2","columna3"))
+        self.tree.heading("#0", text='ID VENTA', anchor=CENTER)
+        self.tree.column("#0", width=90, minwidth=75, stretch=False)
+        
+        self.tree.heading("columna1",text='Codigo Articulo:', anchor=CENTER)
+        self.tree.column("columna1", width=150, minwidth=75, stretch=False)
+
+        self.tree.heading("columna2",text='Codigo  Cliente', anchor=CENTER)
+        self.tree.column("columna2", width=150, minwidth=75, stretch=False)
+
+        self.tree.heading("columna3",text='Fecha', anchor=CENTER)
+        self.tree.column("columna3", width=150, minwidth=75, stretch=False)
+
+        self.tree.grid(row=0,column=0,sticky=E)
+
+        # # Remover otros widgets de otros formularios
+        self.widgets_crud_remove()
+        self.widgets_buscador_remove()
+        self.widgets_informacion_remove()
+        self.widgets_cliente_remove()
+        self.widgets_buscador_remove()
+        self.frame_tabla_crud.grid_remove()
+
+    '''**************WIDGETS REMOVE***************'''
+    def widgets_crud_remove(self):
+        # Remove permite que al cambiar de una ventana a otra se limpie (cargue la nueva ventana solicitada, pasara de registro a buscar o viceversa)
+        # Se limpia label y se carga los nuevos
+        self.label_titulo_crud.grid_remove()
+        self.frame_registro.grid_remove()
+        self.frame_botones_registro.grid_remove()
+
+    def widgets_buscador_remove(self):
+        self.label_titulo_buscador.grid_remove()
+        self.frame_buscar_producto.grid_remove()
+        self.frame_boton_buscar.grid_remove()
+
+    def widgets_informacion_remove(self):
         self.label_informacion.grid_remove()
 
-    def buscar_productos (self):
+    def widgets_cliente_remove(self):
+        self.label_titulo_buscador_cliente.grid_remove()
+        self.frame_buscar_cliente.grid_remove()
+        self.frame_tabla_clientes.grid_remove()
+        self.frame_boton_buscar_clientes.grid_remove()
+    
+    def widgets_ventas_remove(self):
+        self.label_titulo_buscador_venta.grid_remove()
+        self.frame_buscar_ventas.grid_remove()
+        self.frame_tabla_ventas.grid_remove()
+        self.frame_boton_buscar_ventas.grid_remove()
 
-        if(self.validar_busqueda()): #Obtener todos los elementos con get_children(), que retorna una tupla. 
-            records = self.tree.get_children()
-            for element in records:
-                self.tree.delete(element)
-
-        #se puede realizar la busqueda en el formulario por codigo
-
-        #combo_buscar es el combo que tiene los campos por los cuales se puede realizar la busqueda
-
-        if (self.combo_buscar.get()== 'codigo'): #sentencia SQL LIKE-> inicie por una letra o varias o completas
-            query=("SELECT * FROM Productos WHERE codigo LIKE?")
-            #% permite realizar la busqueda sin tener completa del codigo a buscar (busqueda parcial de la palabra y luego clic en buscar)
-            parameters=(self.codigo_nombre.get()+"%")
-            #enviamos a ejecutar_consulta (conexion a la bd para realizar la query) el query y los parametros 
-            db_rows = self.ejecutar_consulta(query, (parameters,))
-            #db_rows es una lista
-            for row in db_rows:
-            #se inserta las conincidencias de busqueda en la tabla por cada parametro de busqueda
-                self.tree.insert("",0, text=row[1], values=(row[2], row[3], row[4], row[5], row[6])) 
-            #busqueda vacia (cuando el producto no esta almacenado en la bd)
-            #el get children lo volvemos una lista o varias o completas en la tabla
-            if(list(self.tree.get_children())==[]):
-               messagebox.showerror("ERROR", "Producto no encontrado")
-        #muestra ventana
-        else:
-        #sentencia SQL LIKE > inicie por
-            query=("SELECT * FROM Productos WHERE nombre LIKE ?")
-            #% permite realizar la busqueda sin tener completa del nombre a buscar (busqueda parcial de la palabra y luego clic en buscar)
-            parameters = (self.codigo_nombre.get()+"%")
-            #enviamos a ejecutar consulta (conexion a la bd para realizar la query) el query y los parametros
-            db_rows = self.ejecutar_consulta(query, (parameters,))
-            #db rows es una lista
-            for row in db_rows:
-                #se inserta las conincidencias de busqueda en la tabla por cada parametro de busqueda
-                self.tree.insert("",0, text=row[1], values=(row[2], row[3], row[4], row[5], row[6]))
-            #busqueda vacia (cuando el producto no esta almacenado en la bd)
-            #al get children lo volvemos una lista o varias o completas en la tabla
-
-            if(list(self.tree.get_children())==[]): 
-                #muestra ventana
-                messagebox.showerror("ERROR","Producto no encontrado")             
-
+    '''**********CLIENTES**************'''
     def buscar_clientes (self):
 
         if(self.validar_busqueda()): #Obtener todos los elementos con get_children(), que retorna una tupla. 
@@ -589,9 +714,20 @@ class Productos:
                 #muestra ventana
                 messagebox.showerror("ERROR","Cliente no encontrado")             
 
+    def listar_clientes(self):
+        records = self.tree.get_children()
+        for element in records:
+            self.tree.delete(element)
+            
+        query = 'SELECT * FROM Clientes ORDER BY nombre DESC'
+        db_rows = self.ejecutar_consulta(query)
+        for row in db_rows:
+            self.tree.insert("",0, text=row[1], values=(row[2], row[3], row[4], row[5], row[6]))
+    '''*********VENTAS***************'''
+ 
     def buscar_ventas (self):
 
-        if(self.validar_busqueda()): #Obtener todos los elementos con get_children(), que retorna una tupla. 
+        if(self.validar_busqueda_ventas()): #Obtener todos los elementos con get_children(), que retorna una tupla. 
             records = self.tree.get_children()
             for element in records:
                 self.tree.delete(element)
@@ -600,39 +736,40 @@ class Productos:
 
         #combo_buscar es el combo que tiene los campos por los cuales se puede realizar la busqueda
 
-        if (self.combo_buscar.get()== 'codigo'): #sentencia SQL LIKE-> inicie por una letra o varias o completas
-            query=("SELECT * FROM Ventas WHERE codigo_producto LIKE?")
+        if (self.combo_buscar.get()== 'codigo_articulo'): #sentencia SQL LIKE-> inicie por una letra o varias o completas
+            query=("SELECT * FROM Ventas WHERE codigo_articulo LIKE?")
             #% permite realizar la busqueda sin tener completa del codigo a buscar (busqueda parcial de la palabra y luego clic en buscar)
-            parameters=(self.codigo_producto.get()+"%")
+            parameters=(self.codigo_venta.get()+"%")
             #enviamos a ejecutar_consulta (conexion a la bd para realizar la query) el query y los parametros 
             db_rows = self.ejecutar_consulta(query, (parameters,))
             #db_rows es una lista
             for row in db_rows:
             #se inserta las conincidencias de busqueda en la tabla por cada parametro de busqueda
-                self.tree.insert("",0, text=row[1], values=(row[1], row[2],row[3])) 
+                self.tree.insert("",0, text=row[1], values=(row[2], row[3])) 
             #busqueda vacia (cuando el producto no esta almacenado en la bd)
             #el get children lo volvemos una lista o varias o completas en la tabla
             if(list(self.tree.get_children())==[]):
-               messagebox.showerror("ERROR", "Venta no encontrado")
+               messagebox.showerror("ERROR", "Venta por codigo de articulo no  se encuentra")
         #muestra ventana
         else:
         #sentencia SQL LIKE > inicie por
-            query=("SELECT * FROM Ventas WHERE codigo_cliente LIKE ?")
+            query=("SELECT * FROM Ventas WHERE codigo_cliente  LIKE?")
             #% permite realizar la busqueda sin tener completa del nombre a buscar (busqueda parcial de la palabra y luego clic en buscar)
-            parameters = (self.codigo_cliente.get()+"%")
+            parameters = (self.codigo_venta.get()+"%")
             #enviamos a ejecutar consulta (conexion a la bd para realizar la query) el query y los parametros
             db_rows = self.ejecutar_consulta(query, (parameters,))
             #db rows es una lista
             for row in db_rows:
                 #se inserta las conincidencias de busqueda en la tabla por cada parametro de busqueda
-                self.tree.insert("",0, text=row[1], values=(row[1], row[2], row[3]))
+                self.tree.insert("",0, text=row[1], values=(row[2], row[3]))
             #busqueda vacia (cuando el producto no esta almacenado en la bd)
             #al get children lo volvemos una lista o varias o completas en la tabla
 
             if(list(self.tree.get_children())==[]): 
                 #muestra ventana
-                messagebox.showerror("ERROR","Ventas no encontrada")
+                messagebox.showerror("ERROR","Venta por codigo de cliente no ha sido encontrada")       
 
+    '''**********OTRAS FUNCIONES DE PRODUCTO*********'''
     def actualizar(self,nuevo_codigo, nuevo_nombre,nuevo_combo_categoria,nueva_cantidad,nuevo_precio,nueva_descripcion,codigo):
         query ='UPDATE Productos SET codigo= ?, nombre= ?, categoria= ?, cantidad = ?, precio= ?, descripcion = ? WHERE codigo = ?'
         parameters = (nuevo_codigo, nuevo_nombre, nuevo_combo_categoria, nueva_cantidad, nuevo_precio, nueva_descripcion, codigo)
@@ -647,7 +784,14 @@ class Productos:
         else:
             self.tree.delete(*self.tree.get_children())
             messagebox.showerror("ERROR", "Complete todos los campos para la busqueda")
-    
+
+    def validar_busqueda_ventas(self):
+        if len(self.codigo_venta.get()) != 0:
+            return True
+        else:
+            self.tree.delete(*self.tree.get_children())
+            messagebox.showerror("ERROR", "Complete todos los campos para la busqueda")
+
     def validar_registrar(self):
         parameters = self.codigo_producto.get()
         query= "SELECT * FROM Productos WHERE codigo = ?"
@@ -659,7 +803,8 @@ class Productos:
         
     def cerrarVentana(self):
         ventana_productos.destroy()
-    
+
+    '''*********LIMPIAR FORMULARIO Y TABLA*********'''
     def limpiar_formulario(self):
         self.codigo_producto.delete(0, END)
         self.nombre_producto.delete(0, END)
@@ -668,28 +813,9 @@ class Productos:
         self.desc_producto.delete(0, END)
         self.precio.delete(0, END)
         
-    def listar_productos(self):
-        records = self.tree.get_children()
-        for element in records:
-            self.tree.delete(element)
-            
-        query = 'SELECT * FROM Productos ORDER BY nombre DESC'
-        db_rows = self.ejecutar_consulta(query)
-        for row in db_rows:
-            self.tree.insert("",0, text=row[1], values=(row[2], row[3], row[4], row[5], row[6]))
-            
     def limpiar_tabla(self):
         self.tree.delete(*self.tree.get_children())
     
-    def listar_clientes(self):
-        records = self.tree.get_children()
-        for element in records:
-            self.tree.delete(element)
-            
-        query = 'SELECT * FROM Clientes ORDER BY nombre DESC'
-        db_rows = self.ejecutar_consulta(query)
-        for row in db_rows:
-            self.tree.insert("",0, text=row[1], values=(row[2], row[3], row[4], row[5], row[6]))
 
 if __name__=='__main__':
     ventana_productos = Tk()
